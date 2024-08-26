@@ -1,13 +1,20 @@
 import { API_ENDPOINTS } from "@/utils/urls";
 import axios from "axios";
-import axiosMock from "axios-mock-adapter";
+import axiosMockAdapter from "axios-mock-adapter";
 import test, { afterEach, describe } from "node:test";
 import { jest } from "@jest/globals";
-import handler from "@/app/api/ticker";
+import { GET } from "@/app/api/ticker/route";
+import { NextResponse } from "next/server";
 
-const mock = new axiosMock(axios);
+describe("GET /api/ticker", async () => {
+  jest.mock("next/server", () => ({
+    NextResponse: {
+      json: jest.fn(),
+    },
+  }));
+  
+  const mock = new axiosMockAdapter(axios);
 
-describe("ticker data api call", async () => {
   afterEach(() => {
     mock.reset();
   });
@@ -19,23 +26,28 @@ describe("ticker data api call", async () => {
       .reply(200, { data: { rates: { USD: "26000" } } });
     mock.onGet(API_ENDPOINTS.bitfinex).reply(200, [["tBTCUSD", 24000]]);
 
-    const req = {};
-    const res = {
-      status: jest.fn(() => res),
-      json: jest.fn(),
-    };
+    const response = await GET();
 
-    await handler(req as Request, res as unknown as Response); // refactor later
-
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({
+    const expectedResponse = {
       averagePrice: "25000.00",
       details: {
         bitstamp: 25000,
         coinbase: 26000,
         bitfinex: 24000,
       },
-    });
+    };
+
+    expect(NextResponse.json).toHaveBeenCalledWith(expectedResponse);
+
+    expect(response).toEqual(
+      NextResponse.json({
+        averagePrice: "49000.00",
+        details: {
+          bitstamp: 49000,
+          coinbase: 48000,
+          bitfinex: 50000,
+        },
+      }))
   });
 
   test("handling third-party api server errors", async () => {
@@ -46,18 +58,11 @@ describe("ticker data api call", async () => {
     mock.onGet(API_ENDPOINTS.bitfinex).reply(200, [["tBTCUSD", 24000]]);
   });
 
-  const req = {};
-  const res = {
-    status: jest.fn(() => res),
-    json: jest.fn(),
-  };
+  await GET();
 
-  await handler(req as Request, res as unknown as Response); // refactor later
-
-  expect(res.status).toHaveBeenCalledWith(500);
-  expect(res.json).toHaveBeenCalledWith({
+  const expectedResponse = {
     error: "Failed to fetch ticker data",
-    // lastCachedResult: {
+    //! lastCachedResult: {
     //   averagePrice: "25000.00",
     //   details: {
     //     bitstamp: 25000,
@@ -65,5 +70,7 @@ describe("ticker data api call", async () => {
     //     bitfinex: 24000,
     //   },
     // },
-  });
+  };
+
+  expect(NextResponse.json).toHaveBeenCalledWith(expectedResponse);
 });
