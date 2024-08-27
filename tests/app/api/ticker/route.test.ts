@@ -1,3 +1,7 @@
+/**
+ * @jest-environment node
+ */
+
 import { API_ENDPOINTS } from "@/utils/urls";
 import axios from "axios";
 import axiosMockAdapter from "axios-mock-adapter";
@@ -6,17 +10,19 @@ import { jest } from "@jest/globals";
 import { GET } from "@/app/api/ticker/route";
 import { NextResponse } from "next/server";
 
+jest.mock("next/server", () => ({
+  NextResponse: {
+    json: jest.fn(),
+  },
+}));
+
 describe("GET /api/ticker", async () => {
-  jest.mock("next/server", () => ({
-    NextResponse: {
-      json: jest.fn(),
-    },
-  }));
   
   const mock = new axiosMockAdapter(axios);
 
   afterEach(() => {
     mock.reset();
+    jest.clearAllMocks(); 
   });
 
   test("calling and aggregating data from 3 endpoints", async () => {
