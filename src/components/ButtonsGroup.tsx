@@ -2,15 +2,14 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import GJNumberLabel from "./GJNumberLabel";
+import { SelectedTradingPair } from './DetailedSidePanel';
 
-interface ButtonsGroupProps {
-  handleUrlSymbolChange: (value: string) => void;
-}
 
-export interface TradingPair {
+export interface TradingPair extends SelectedTradingPair  {
   name: string;
-  url_symbol: string;
-  description: string;
+}
+interface ButtonsGroupProps {
+  handleTradingPairChange: (value: SelectedTradingPair) => void;
 }
 
 interface FetchTradingPairsResponse {
@@ -26,7 +25,7 @@ export async function fetchTradingPairs(page: number, limit: number): Promise<Fe
   return response.json();
 }
 
-export default function ButtonsGroup({ handleUrlSymbolChange }: ButtonsGroupProps) {
+export default function ButtonsGroup({ handleTradingPairChange }: ButtonsGroupProps) {
   const [page, setPage] = useState<number>(1);
   const limit = 9;
 
@@ -59,7 +58,7 @@ export default function ButtonsGroup({ handleUrlSymbolChange }: ButtonsGroupProp
           <button
             key={pair.url_symbol}
             className="bg-blue-400 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded"
-            onClick={() => handleUrlSymbolChange(pair.url_symbol)}
+            onClick={() => handleTradingPairChange({url_symbol: pair.url_symbol, description: pair.description})}
           >
             <GJNumberLabel description={pair.name} number={pair.description} />
           </button>

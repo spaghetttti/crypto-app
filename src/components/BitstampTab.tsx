@@ -1,5 +1,6 @@
 import { unixTimestampToTimeStringConverter } from '@/utils/timeConverter';
 import { useQuery } from '@tanstack/react-query';
+import { SelectedTradingPair } from './DetailedSidePanel';
 export interface TradingPairDetails {
   timestamp: string;
   open: string;
@@ -15,23 +16,21 @@ export interface TradingPairDetails {
   percent_change_24: string;
 }
 
-interface BitstampTabProps {
-  urlSymbol: string;
-}
+interface BitstampTabProps extends SelectedTradingPair {};
 
-export async function fetchTradingPairDetails(urlSymbol: string): Promise<TradingPairDetails> {
-  const response = await fetch(`/api/trading-pairs/${urlSymbol}`);
+export async function fetchTradingPairDetails(url_symbol: string): Promise<TradingPairDetails> {
+  const response = await fetch(`/api/trading-pairs/${url_symbol}`);
   if (!response.ok) {
     throw new Error('Failed to fetch trading pair details');
   }
   return response.json();
 }
 
-export default function BitstampTab({ urlSymbol }: BitstampTabProps) {
+export default function BitstampTab({ url_symbol, description }: BitstampTabProps) {
   const { data: details, error, isLoading, isError, isSuccess } = useQuery({
-    queryKey: ['tradingPairDetails', urlSymbol],
-    queryFn: () => fetchTradingPairDetails(urlSymbol),
-    enabled: !!urlSymbol, // Only run query if urlSymbol is provided
+    queryKey: ['tradingPairDetails', url_symbol],
+    queryFn: () => fetchTradingPairDetails(url_symbol),
+    enabled: !!url_symbol, // Only run query if urlSymbol is provided
   });
 
   if (isLoading) {
@@ -48,7 +47,7 @@ export default function BitstampTab({ urlSymbol }: BitstampTabProps) {
 
   return (
     <div className="flex-1 p-4">
-      <h2 className="text-lg font-semibold">Selected Bitstamp Trading Values</h2>
+      <h2 className="text-lg font-semibold">Selected Bitstamp Trading Values for {description}</h2>
       <ul>
         <li>Timestamp: {unixTimestampToTimeStringConverter(Number(details.timestamp)* 1000)}</li>
         <li>Open: {details.open}</li>

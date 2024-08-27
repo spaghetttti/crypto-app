@@ -3,17 +3,22 @@ import { useState } from "react";
 import BitstampTab from "./BitstampTab";
 import ButtonsGroup from "./ButtonsGroup"
 
-export default function DetailedSidePanel() {
-  const [urlSymbol, setUrlSymbol] = useState('');
+export interface SelectedTradingPair {
+  url_symbol: string, 
+  description: string
+}
 
-  const handleUrlSymbolChange = (value: string) => {
-    setUrlSymbol(value);
+export default function DetailedSidePanel() {
+  const [selectedTradingPair, setSelectedTradingPair] = useState<SelectedTradingPair>({url_symbol: 'usdbtc', description: 'loh'});
+
+  const handleSelectedTradingPairChange = (newTradingPair: SelectedTradingPair) => {
+    setSelectedTradingPair(newTradingPair);
   }
-  
+
   return (
     <div className="flex flex-col md:w-1/3 bg-white m-2 shadow-md">
-      <ButtonsGroup handleUrlSymbolChange={handleUrlSymbolChange}/>
-      <BitstampTab  urlSymbol={urlSymbol}/>
+      <ButtonsGroup handleTradingPairChange={handleSelectedTradingPairChange}/>
+      <BitstampTab url_symbol={selectedTradingPair.url_symbol} description={selectedTradingPair.description}/>
     </div>
   );
 }
