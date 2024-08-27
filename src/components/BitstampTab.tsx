@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-
-interface TradingPairDetails {
+import { unixTimestampToTimeStringConverter } from '@/utils/timeConverter';
+import { useQuery } from '@tanstack/react-query';
+export interface TradingPairDetails {
   timestamp: string;
   open: string;
   high: string;
@@ -19,40 +19,27 @@ interface BitstampTabProps {
   urlSymbol: string;
 }
 
+export async function fetchTradingPairDetails(urlSymbol: string): Promise<TradingPairDetails> {
+  const response = await fetch(`/api/trading-pairs/${urlSymbol}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch trading pair details');
+  }
+  return response.json();
+}
+
 export default function BitstampTab({ urlSymbol }: BitstampTabProps) {
-  const [details, setDetails] = useState<TradingPairDetails | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: details, error, isLoading, isError, isSuccess } = useQuery({
+    queryKey: ['tradingPairDetails', urlSymbol],
+    queryFn: () => fetchTradingPairDetails(urlSymbol),
+    enabled: !!urlSymbol, // Only run query if urlSymbol is provided
+  });
 
-  useEffect(() => {
-    const fetchDetails = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch(`/api/trading-pairs/${urlSymbol}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch trading pair details");
-        }
-
-        const data = await response.json();
-        setDetails(data);
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDetails();
-  }, [urlSymbol]);
-
-  if (loading) {
+  if (isLoading) {
     return <p>Loading...</p>;
   }
 
-  if (error) {
-    return <p className="text-red-500">{error}</p>;
+  if (isError) {
+    return <p className="text-red-500">{(error as Error).message}</p>;
   }
 
   if (!details) {
@@ -63,7 +50,7 @@ export default function BitstampTab({ urlSymbol }: BitstampTabProps) {
     <div className="flex-1 p-4">
       <h2 className="text-lg font-semibold">Selected Bitstamp Trading Values</h2>
       <ul>
-        <li>Timestamp: {details.timestamp}</li>
+        <li>Timestamp: {unixTimestampToTimeStringConverter(Number(details.timestamp)* 1000)}</li>
         <li>Open: {details.open}</li>
         <li>High: {details.high}</li>
         <li>Low: {details.low}</li>
