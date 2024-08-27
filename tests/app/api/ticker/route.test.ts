@@ -1,38 +1,72 @@
 /**
  * @jest-environment node
  */
-
 import { API_ENDPOINTS } from "@/utils/urls";
 import axios from "axios";
 import axiosMockAdapter from "axios-mock-adapter";
-import test, { afterEach, describe } from "node:test";
-import { jest } from "@jest/globals";
 import { GET } from "@/app/api/ticker/route";
 import { NextResponse } from "next/server";
 
 jest.mock("next/server", () => ({
+  _esModule: true,
   NextResponse: {
     json: jest.fn(),
   },
 }));
 
-describe("GET /api/ticker", async () => {
-  
+describe("GET /api/ticker", () => {
   const mock = new axiosMockAdapter(axios);
+  const CACHE_DURATION = 3000;
+  let cache: { data: any; timestamp: number };
 
-  afterEach(() => {
-    mock.reset();
-    jest.clearAllMocks(); 
+  beforeEach(() => {
+    console.log(cache);
+    
+    // cache = { data: null, timestamp: 0 }; 
+    jest.spyOn(global.Date, 'now').mockImplementation(() => 1000000); // Mock the timestamp
   });
 
-  test("calling and aggregating data from 3 endpoints", async () => {
+  afterEach(() => {
+    mock.reset(); // Reset the mock adapter
+  });
+
+  test("returns cached data if within cache duration", async () => {
+    const cachedData = {
+      averagePrice: "25000.00",
+      details: {
+        bitstamp: 25000,
+        coinbase: 26000,
+        bitfinex: 24000,
+      },
+      timestamp: Date.now(),
+    };
+
+    cache = {
+      data: cachedData,
+      timestamp: Date.now(),
+    };
+
+    await GET();
+
+    expect(NextResponse.json).toHaveBeenCalledWith(cachedData);
+    expect(axios.get).not.toHaveBeenCalled();
+  });
+
+  test("fetches new data and updates the cache if cache is expired", async () => {
+    // Mocking API responses
     mock.onGet(API_ENDPOINTS.bitstamp).reply(200, { last: "25000" });
     mock
       .onGet(API_ENDPOINTS.coinbase)
       .reply(200, { data: { rates: { USD: "26000" } } });
     mock.onGet(API_ENDPOINTS.bitfinex).reply(200, [["tBTCUSD", 24000]]);
 
-    const response = await GET();
+    // Set cache to be expired
+    cache = {
+      data: { oldData: 'oldData' },
+      timestamp: Date.now() - CACHE_DURATION - 10,
+    };
+
+    await GET();
 
     const expectedResponse = {
       averagePrice: "25000.00",
@@ -41,42 +75,52 @@ describe("GET /api/ticker", async () => {
         coinbase: 26000,
         bitfinex: 24000,
       },
+      timestamp: expect.any(Number),
+    };
+
+    // expect(axios.get).toHaveBeenCalledTimes(3);
+    expect(NextResponse.json).toHaveBeenCalledWith(expectedResponse);
+  });
+
+  test("returns cached data with error message if API call fails", async () => {
+    const now = Date.now();
+    const cachedData = {
+      averagePrice: "25000.00",
+      details: {
+        bitstamp: 25000,
+        coinbase: 26000,
+        bitfinex: 24000,
+      },
+      timestamp: now,
+    };
+
+    cache = { data: cachedData, timestamp: now };
+
+    mock.onGet(API_ENDPOINTS.bitstamp).networkError();
+    mock.onGet(API_ENDPOINTS.coinbase).reply(200, { data: { rates: { USD: "26000" } } });
+    mock.onGet(API_ENDPOINTS.bitfinex).reply(200, [["tBTCUSD", 24000]]);
+
+    await GET();
+
+    const expectedResponse = {
+      ...cachedData,
+      error: 'Failed to fetch new data, returning cached data',
     };
 
     expect(NextResponse.json).toHaveBeenCalledWith(expectedResponse);
-
-    expect(response).toEqual(
-      NextResponse.json({
-        averagePrice: "49000.00",
-        details: {
-          bitstamp: 49000,
-          coinbase: 48000,
-          bitfinex: 50000,
-        },
-      }))
   });
 
-  test("handling third-party api server errors", async () => {
-    mock.onGet(API_ENDPOINTS.bitstamp).networkError;
-    mock
-      .onGet(API_ENDPOINTS.coinbase)
-      .reply(200, { data: { rates: { USD: "26000" } } });
-    mock.onGet(API_ENDPOINTS.bitfinex).reply(200, [["tBTCUSD", 24000]]);
+  test("returns error response if no cache and API call fails", async () => {
+    mock.onGet(API_ENDPOINTS.bitstamp).networkError();
+    mock.onGet(API_ENDPOINTS.coinbase).networkError();
+    mock.onGet(API_ENDPOINTS.bitfinex).networkError();
+
+    await GET();
+
+    const expectedResponse = {
+      error: 'Failed to fetch ticker data',
+    };
+
+    expect(NextResponse.json).toHaveBeenCalledWith(expectedResponse, { status: 500 });
   });
-
-  await GET();
-
-  const expectedResponse = {
-    error: "Failed to fetch ticker data",
-    //! lastCachedResult: {
-    //   averagePrice: "25000.00",
-    //   details: {
-    //     bitstamp: 25000,
-    //     coinbase: 26000,
-    //     bitfinex: 24000,
-    //   },
-    // },
-  };
-
-  expect(NextResponse.json).toHaveBeenCalledWith(expectedResponse);
 });
