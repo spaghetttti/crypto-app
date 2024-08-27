@@ -1,11 +1,11 @@
 /**
  * @jest-environment node
  */
-import { API_ENDPOINTS } from "@/utils/urls";
 import axios from "axios";
 import axiosMockAdapter from "axios-mock-adapter";
 import { GET } from "@/app/api/ticker/route";
 import { NextResponse } from "next/server";
+import { API_ENDPOINTS } from "@/app/constants/urls";
 
 jest.mock("next/server", () => ({
   _esModule: true,

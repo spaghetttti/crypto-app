@@ -1,11 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
 import GJNumberLabel from "./GJNumberLabel";
 import { unixTimestampToTimeStringConverter } from "@/utils/timeConverter";
-
-interface AverageSidePanelProps {
-  title: string;
-}
+import { useQuery } from "@tanstack/react-query";
 
 interface TickerData {
   averagePrice: string;
@@ -18,39 +14,26 @@ interface TickerData {
   timestamp: number
 }
 
-export default function AverageSidePanel({ title }: AverageSidePanelProps) {
-  const [tickerData, setTickerData] = useState<TickerData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+export async function fetchTickerData() {
+  const response = await fetch("/api/ticker");
+  if (!response.ok) {
+    throw new Error("Failed to fetch data");
+  }
+  return response.json();
+}
 
-  useEffect(() => {
-    const fetchTickerData = async () => {
-      try {
-        const response = await fetch("/api/ticker");
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
-        }
-        const data: TickerData = await response.json();
-        setTickerData(data);
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTickerData();
-  }, []);
+export default function AverageSidePanel() {
+  const { data: tickerData, error, isLoading } = useQuery<TickerData>({ queryKey: ['tickerData'], queryFn: fetchTickerData });
 
   return (
     <div className="flex-1 bg-white p-4 m-2 shadow-md">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      {loading && <p>Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      <h2 className="text-lg font-semibold">Average ticker values</h2>
+      {isLoading && <p>Loading...</p>}
+      {error && <p className="text-red-500">{error.message}</p>}
       {tickerData?.averagePrice && (
         <>
         {tickerData?.error && (<p className="text-yellow-500">Network Error, the data displayed is actual for {unixTimestampToTimeStringConverter(tickerData.timestamp)}  </p>)}
-        <div className="mt-4 text-2xl font-bold">
+        <div className="mt-4 text-xl font-bold">
           <GJNumberLabel
             description="$"
             number={tickerData.averagePrice}

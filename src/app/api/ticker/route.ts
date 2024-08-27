@@ -1,4 +1,4 @@
-import { API_ENDPOINTS } from "@/utils/urls";
+import { API_ENDPOINTS } from "@/app/constants/urls";
 import axios from "axios";
 import { NextResponse } from "next/server";
 

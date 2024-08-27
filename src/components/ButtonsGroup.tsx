@@ -18,7 +18,7 @@ export default function ButtonsGroup({handleUrlSymbolChange}: ButtonsGroupProps)
   const [totalPages, setTotalPages] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const limit = 10;
+  const limit = 9;
 
   useEffect(() => {
     const fetchTradingPairs = async () => {
