@@ -8,7 +8,11 @@ interface TradingPair {
   description: string;
 }
 
-export default function ButtonsGroup() {
+interface ButtonsGroupProps {
+  handleUrlSymbolChange: (value: string) => void
+}
+
+export default function ButtonsGroup({handleUrlSymbolChange}: ButtonsGroupProps) {
   const [tradingPairs, setTradingPairs] = useState<{ [key: number]: TradingPair[] }>({});
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -69,7 +73,7 @@ export default function ButtonsGroup() {
           <button
             key={pair.url_symbol}
             className="bg-blue-400 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded"
-            onClick={() => console.log(`Selected pair: ${pair.url_symbol}`)}
+            onClick={() => handleUrlSymbolChange(pair.url_symbol)}
           >
             <GJNumberLabel description={pair.name} number={pair.description} />
           </button>
