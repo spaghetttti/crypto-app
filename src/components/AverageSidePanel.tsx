@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import GJNumberLabel from "./GJNumberLabel";
 
 interface AverageSidePanelProps {
   title: string;
@@ -44,8 +45,12 @@ export default function AverageSidePanel({ title }: AverageSidePanelProps) {
       {loading && <p>Loading...</p>}
       {error && <p className="text-red-500">{error}</p>}
       {tickerData && (
-        <div className="mt-4">
-          <p className="text-2xl font-bold">${tickerData.averagePrice}</p>
+        <div className="mt-4 text-2xl font-bold">
+          <GJNumberLabel
+            description="$"
+            number={tickerData.averagePrice}
+            details={tickerData.details}
+          />
         </div>
       )}
     </div>
