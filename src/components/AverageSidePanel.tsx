@@ -1,20 +1,10 @@
 "use client";
+import { TickerData } from "@/types/TickerData";
 import GJNumberLabel from "./GJNumberLabel";
 import { unixTimestampToTimeStringConverter } from "@/utils/timeConverter";
 import { useQuery } from "@tanstack/react-query";
 
-interface TickerData {
-  averagePrice: string;
-  details: {
-    bitstamp: number;
-    coinbase: number;
-    bitfinex: number;
-  };
-  error?: string;
-  timestamp: number
-}
-
-export async function fetchTickerData() {
+async function fetchTickerData() {
   const response = await fetch("/api/ticker");
   if (!response.ok) {
     throw new Error("Failed to fetch data");

@@ -2,14 +2,10 @@
 import { useState } from "react";
 import BitstampTab from "./BitstampTab";
 import ButtonsGroup from "./ButtonsGroup"
-
-export interface SelectedTradingPair {
-  url_symbol: string, 
-  description: string
-}
+import { SelectedTradingPair } from "@/types/SelectedTradingPair";
 
 export default function DetailedSidePanel() {
-  const [selectedTradingPair, setSelectedTradingPair] = useState<SelectedTradingPair>({url_symbol: 'btcusd', description: 'loh'});
+  const [selectedTradingPair, setSelectedTradingPair] = useState<SelectedTradingPair>({url_symbol: '', description: ''});
 
   const handleSelectedTradingPairChange = (newTradingPair: SelectedTradingPair) => {
     setSelectedTradingPair(newTradingPair);

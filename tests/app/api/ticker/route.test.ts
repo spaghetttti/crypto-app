@@ -6,7 +6,8 @@ import axiosMockAdapter from "axios-mock-adapter";
 import { GET } from "@/app/api/ticker/route";
 import { NextResponse } from "next/server";
 import { API_ENDPOINTS } from "@/app/constants/urls";
-
+import { TickerData } from "@/types/TickerData";
+  
 jest.mock("next/server", () => ({
   _esModule: true,
   NextResponse: {
@@ -17,7 +18,7 @@ jest.mock("next/server", () => ({
 describe("GET /api/ticker", () => {
   const mock = new axiosMockAdapter(axios);
   const CACHE_DURATION = 3000;
-  let cache: { data: any; timestamp: number };
+  let cache: TickerData;
 
   beforeEach(() => {
     console.log(cache);
@@ -27,7 +28,7 @@ describe("GET /api/ticker", () => {
   });
 
   afterEach(() => {
-    mock.reset(); // Reset the mock adapter
+    mock.reset(); 
   });
 
   test("returns cached data if within cache duration", async () => {
@@ -41,10 +42,7 @@ describe("GET /api/ticker", () => {
       timestamp: Date.now(),
     };
 
-    cache = {
-      data: cachedData,
-      timestamp: Date.now(),
-    };
+    cache = cachedData;
 
     await GET();
 
@@ -53,7 +51,6 @@ describe("GET /api/ticker", () => {
   });
 
   test("fetches new data and updates the cache if cache is expired", async () => {
-    // Mocking API responses
     mock.onGet(API_ENDPOINTS.bitstamp).reply(200, { last: "25000" });
     mock
       .onGet(API_ENDPOINTS.coinbase)
@@ -62,7 +59,12 @@ describe("GET /api/ticker", () => {
 
     // Set cache to be expired
     cache = {
-      data: { oldData: 'oldData' },
+      averagePrice: "25000.00",
+      details: {
+        bitstamp: 25000,
+        coinbase: 26000,
+        bitfinex: 24000,
+      },
       timestamp: Date.now() - CACHE_DURATION - 10,
     };
 
@@ -78,7 +80,6 @@ describe("GET /api/ticker", () => {
       timestamp: expect.any(Number),
     };
 
-    // expect(axios.get).toHaveBeenCalledTimes(3);
     expect(NextResponse.json).toHaveBeenCalledWith(expectedResponse);
   });
 
@@ -94,7 +95,7 @@ describe("GET /api/ticker", () => {
       timestamp: now,
     };
 
-    cache = { data: cachedData, timestamp: now };
+    cache = cachedData;
 
     mock.onGet(API_ENDPOINTS.bitstamp).networkError();
     mock.onGet(API_ENDPOINTS.coinbase).reply(200, { data: { rates: { USD: "26000" } } });

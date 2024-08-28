@@ -2,13 +2,13 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import GJNumberLabel from "./GJNumberLabel";
-import { SelectedTradingPair } from "./DetailedSidePanel";
+import { SelectedTradingPair } from "@/types/SelectedTradingPair";
 
 interface ButtonsGroupProps {
   handleTradingPairChange: (value: SelectedTradingPair) => void;
 }
 
-export interface TradingPair extends SelectedTradingPair {
+interface TradingPair extends SelectedTradingPair {
   name: string;
 }
 

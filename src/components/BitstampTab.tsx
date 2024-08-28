@@ -1,7 +1,10 @@
+import { SelectedTradingPair } from '@/types/SelectedTradingPair';
 import { unixTimestampToTimeStringConverter } from '@/utils/timeConverter';
 import { useQuery } from '@tanstack/react-query';
-import { SelectedTradingPair } from './DetailedSidePanel';
-export interface TradingPairDetails {
+
+interface BitstampTabProps extends SelectedTradingPair {};
+
+interface TradingPairDetails {
   timestamp: string;
   open: string;
   high: string;
@@ -15,8 +18,6 @@ export interface TradingPairDetails {
   open_24: string;
   percent_change_24: string;
 }
-
-interface BitstampTabProps extends SelectedTradingPair {};
 
 export async function fetchTradingPairDetails(url_symbol: string): Promise<TradingPairDetails> {
   const response = await fetch(`/api/trading-pairs/${url_symbol}`);
