@@ -15,6 +15,11 @@ export class CacheService<T> {
     return null;
   }
 
+  getLastCachedDataWithoutValidation(key: string): T | undefined {
+    const cacheEntry = this.cacheMap.get(key);
+    return cacheEntry?.data;
+  }
+
   setCache(key: string, data: T): void {
     this.cacheMap.set(key, { data, timestamp: Date.now() });
   }

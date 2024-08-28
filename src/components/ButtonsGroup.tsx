@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import GJNumberLabel from "./GJNumberLabel";
 import { SelectedTradingPair } from "@/types/SelectedTradingPair";
+import LoadingSnipper from "./LoadingSpinner";
 
 interface ButtonsGroupProps {
   handleTradingPairChange: (value: SelectedTradingPair) => void;
@@ -18,7 +19,7 @@ interface FetchTradingPairsResponse {
   totalItems: number;
 }
 
-export async function fetchTradingPairs(
+async function fetchTradingPairs(
   page: number,
   limit: number
 ): Promise<FetchTradingPairsResponse> {
@@ -30,6 +31,7 @@ export async function fetchTradingPairs(
   }
   return response.json();
 }
+
 export default function ButtonsGroup({
   handleTradingPairChange,
 }: ButtonsGroupProps) {
@@ -66,11 +68,12 @@ export default function ButtonsGroup({
 
   return (
     <div onScroll={handleScroll} style={{ height: "400px", overflowY: "auto" }}>
+      <h2 className="text-lg font-semibold">Trading pairs</h2>
       <div className="grid grid-cols-3 gap-2 p-2">
         {items.map((pair: TradingPair) => (
           <button
             key={pair.url_symbol}
-            className="bg-blue-400 hover:bg-blue-500 text-white py-2 px-4 rounded"
+            className="bg-sky-600 hover:bg-sky-700 text-white py-2 px-4 rounded"
             onClick={() =>
               handleTradingPairChange({
                 url_symbol: pair.url_symbol,
@@ -82,7 +85,15 @@ export default function ButtonsGroup({
           </button>
         ))}
       </div>
-      {(isLoading || isFetching) && <p>Loading...</p>}
+      {(isLoading || isFetching) && (
+        <button
+          disabled
+          className="flex justify-center m-2 bg-sky-800 text-white py-2 px-4 rounded w-full"
+        >
+          <LoadingSnipper color="text-white" />
+          Loading...
+        </button>
+      )}
       {error && <p className="text-red-500">{(error as Error).message}</p>}
     </div>
   );

@@ -3,7 +3,7 @@ import TickerService from "../services/TickerService";
 import { CacheService } from "../services/CacheServices";
 import { TickerData } from "@/types/TickerData";
 
-const cacheService = new CacheService<TickerData>(30000);
+const cacheService = new CacheService<TickerData>(10000);
 const tickerService = new TickerService(cacheService, "tickerData");
 
 export async function GET() {
@@ -11,13 +11,13 @@ export async function GET() {
     const data = await tickerService.getTickerData();
     return NextResponse.json(data);
   } catch (error) {
-    const cachedData = tickerService.getLastCachedData();
-    if (cachedData) {
-      return NextResponse.json({
-        ...cachedData,
-        error: 'Failed to fetch new data, returning cached data',
-      });
-    }
+    // const cachedData = tickerService.getLastCachedData();
+    // if (cachedData) {
+    //   return NextResponse.json({
+    //     ...cachedData,
+    //     error: 'Failed to fetch new data, returning cached data',
+    //   });
+    // }
     return NextResponse.json({ error: 'Failed to fetch ticker data' }, { status: 500 });
   }
 }
