@@ -9,8 +9,20 @@ interface TradingPair {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const page = parseInt(searchParams.get('page') || '1', 10);
-  const limit = parseInt(searchParams.get('limit') || '10', 10);
+  const pageParam = searchParams.get('page');
+  const limitParam = searchParams.get('limit');
+
+  // Parse and validate the 'page' parameter
+  const page = parseInt(pageParam || '1', 10);
+  if (isNaN(page) || page <= 0) {
+    return NextResponse.json({ error: 'Invalid page parameter, must be a positive integer' }, { status: 400 });
+  }
+
+  // Parse and validate the 'limit' parameter
+  const limit = parseInt(limitParam || '10', 10);
+  if (isNaN(limit) || limit <= 0) {
+    return NextResponse.json({ error: 'Invalid limit parameter, must be a positive integer' }, { status: 400 });
+  }
 
   try {
     const response = await axios.get<TradingPair[]>('https://www.bitstamp.net/api/v2/trading-pairs-info/');
