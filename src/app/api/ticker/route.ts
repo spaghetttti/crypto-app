@@ -3,7 +3,7 @@ import TickerService from "../services/TickerService";
 import { CacheService } from "../services/CacheServices";
 import { TickerData } from "@/types/TickerData";
 
-const cacheService = new CacheService<TickerData>(30000);
+const cacheService = new CacheService<TickerData>(10000);
 const tickerService = new TickerService(cacheService, "tickerData");
 
 export async function GET() {

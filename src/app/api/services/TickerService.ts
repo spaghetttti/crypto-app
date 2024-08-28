@@ -13,13 +13,13 @@ class TickerService {
   }
   
   getLastCachedData(): TickerData | null {
-    const cachedData = this.cacheService.getCachedData(this.cacheKey);
-    console.log('Cache check:', cachedData ? 'Hit' : 'Miss', 'at', new Date().toISOString());
-    return cachedData;
+    const cachedData = this.cacheService.getLastCachedDataWithoutValidation(this.cacheKey);
+    if (cachedData) return cachedData;
+    return null;
   }
 
   async getTickerData(): Promise<TickerData> {
-    const cachedData = this.getLastCachedData();
+    const cachedData = this.cacheService.getCachedData(this.cacheKey)
     if (cachedData) return cachedData;
     
     const now = Date.now();
