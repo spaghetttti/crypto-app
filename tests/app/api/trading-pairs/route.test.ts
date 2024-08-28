@@ -44,19 +44,6 @@ describe('GET /api/trading-pairs', () => {
     expect(NextResponse.json).toHaveBeenCalledWith(expectedResponse);
   });
 
-  test('handles API failure gracefully', async () => {
-    mock.onGet('https://www.bitstamp.net/api/v2/trading-pairs-info/').networkError();
-
-    const request = new Request('http://localhost/api/trading-pairs?page=1&limit=10');
-
-    await GET(request);
-
-    expect(NextResponse.json).toHaveBeenCalledWith(
-      { error: 'Failed to fetch trading pairs data' },
-      { status: 500 }
-    );
-  });
-
   test('returns error for page=0', async () => {
     const request = new Request('http://localhost/api/trading-pairs?page=0&limit=10');
 

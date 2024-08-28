@@ -11,13 +11,13 @@ class TickerService {
     this.cacheService = cacheService;
     this.cacheKey = cacheKey;
   }
+  
+  getLastCachedData(): TickerData | null {
+    return this.cacheService.getCachedData(this.cacheKey);
+  }
 
   async getTickerData(): Promise<TickerData> {
-    const cachedData = this.cacheService.getCachedData(this.cacheKey);
-    if (cachedData) {
-      return cachedData;
-    }
-
+    const cachedData = this.getLastCachedData();
     const now = Date.now();
     const [bitfinex, coinbase, bitstamp] = await Promise.all([
       axios.get(API_ENDPOINTS.bitfinex),
@@ -30,7 +30,8 @@ class TickerService {
     const bitfinexPrice = parseFloat(bitfinex.data[0][1]);
 
     const averagePrice = (
-      (bitstampPrice + coinbaseRate + bitfinexPrice) / 3
+      (bitstampPrice + coinbaseRate + bitfinexPrice) /
+      3
     ).toFixed(2);
 
     const responseData: TickerData = {

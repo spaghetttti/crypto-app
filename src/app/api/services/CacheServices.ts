@@ -9,7 +9,7 @@ export class CacheService<T> {
 
   getCachedData(key: string): T | null {
     const cacheEntry = this.cacheMap.get(key);
-    if (cacheEntry && (Date.now() - cacheEntry.timestamp) < this.cacheDuration) {
+    if (cacheEntry && Date.now() - cacheEntry.timestamp < this.cacheDuration) {
       return cacheEntry.data;
     }
     return null;

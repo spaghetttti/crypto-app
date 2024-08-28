@@ -11,7 +11,7 @@ export async function GET() {
     const data = await tickerService.getTickerData();
     return NextResponse.json(data);
   } catch (error) {
-    const cachedData = tickerService.getTickerData();
+    const cachedData = tickerService.getLastCachedData();
     if (cachedData) {
       return NextResponse.json({
         ...cachedData,
