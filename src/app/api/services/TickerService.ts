@@ -13,7 +13,9 @@ class TickerService {
   }
   
   getLastCachedData(): TickerData | null {
-    return this.cacheService.getCachedData(this.cacheKey);
+    const cachedData = this.cacheService.getCachedData(this.cacheKey);
+    console.log('Cache check:', cachedData ? 'Hit' : 'Miss', 'at', new Date().toISOString());
+    return cachedData;
   }
 
   async getTickerData(): Promise<TickerData> {
@@ -21,6 +23,8 @@ class TickerService {
     if (cachedData) return cachedData;
     
     const now = Date.now();
+    console.log('Fetching new data at', new Date(now).toISOString());
+
     const [bitfinex, coinbase, bitstamp] = await Promise.all([
       axios.get(API_ENDPOINTS.bitfinex),
       axios.get(API_ENDPOINTS.coinbase),
@@ -46,9 +50,11 @@ class TickerService {
       timestamp: now,
     };
 
+    console.log('Setting cache with key:', this.cacheKey);
     this.cacheService.setCache(this.cacheKey, responseData);
     return responseData;
   }
 }
+
 
 export default TickerService;
