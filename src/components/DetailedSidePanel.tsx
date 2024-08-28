@@ -12,7 +12,7 @@ export default function DetailedSidePanel() {
   }
 
   return (
-    <div className="flex flex-col md:w-1/3 bg-white m-2 shadow-md">
+    <div className="flex flex-col md:w-1/2 bg-white m-2 shadow-md">
       <ButtonsGroup handleTradingPairChange={handleSelectedTradingPairChange}/>
       <BitstampTab url_symbol={selectedTradingPair.url_symbol} description={selectedTradingPair.description}/>
     </div>
