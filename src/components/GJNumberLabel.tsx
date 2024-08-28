@@ -9,16 +9,16 @@ const GJNumberLabel: React.FC<GJNumberLabelProps> = ({
   details = null,
 }: GJNumberLabelProps) => {
   return (
-    <div className="">
-      <span className="">{description}</span>
-      <span className="">{number}</span>
+    <div>
+      <span>{description}</span>
+      <span>{number}</span>
       {details && (
-        <>
+        <div className="text-base">
           <h6>Details:</h6>
-          <span className="">Bitstamp: {details.bitstamp}</span> <br />
-          <span className="">Coinbase: {details.coinbase}</span> <br />
-          <span className="">Bitfinex: {details.bitfinex}</span>
-        </>
+          <span>Bitstamp: ${details.bitstamp}</span> <br />
+          <span>Coinbase: ${details.coinbase}</span> <br />
+          <span>Bitfinex: ${details.bitfinex}</span>
+        </div>
       )}
     </div>
   );

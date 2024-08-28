@@ -11,12 +11,12 @@
     "test:watch": "jest --watchAll"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.52.2",
     "@types/jest": "^29.5.12",
     "axios": "^1.7.5",
     "next": "14.2.6",
     "react": "^18",
-    "react-dom": "^18",
-    "react-window": "^1.8.10"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.0",

@@ -34,7 +34,6 @@ export async function GET(request: Request) {
       items: paginatedPairs,
     });
   } catch (error) {
-    console.error('Error fetching trading pairs:', error);
     return NextResponse.json({ error: 'Failed to fetch trading pairs data' }, { status: 500 });
   }
 }
