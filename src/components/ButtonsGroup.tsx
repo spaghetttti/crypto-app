@@ -44,7 +44,6 @@ export default function ButtonsGroup({
     queryKey: ["tradingPairs", page],
     queryFn: () => fetchTradingPairs(page, limit),
     staleTime: 60000,
-    // keepPreviousData: true,
   });
 
   useEffect(() => {

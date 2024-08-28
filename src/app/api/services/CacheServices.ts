@@ -1,34 +1,35 @@
+import Redis from "ioredis";
+
 export class CacheService<T> {
-  private cacheMap: Map<string, { data: T; timestamp: number }>;
+  private redis: Redis;
   private cacheDuration: number;
 
   constructor(cacheDuration: number = 3000) {
-    this.cacheMap = new Map();
+    this.redis = new Redis(process.env.REDIS_URL as string);
     this.cacheDuration = cacheDuration;
   }
-
-  getCachedData(key: string): T | null {
-    const cacheEntry = this.cacheMap.get(key);
-    if (cacheEntry && Date.now() - cacheEntry.timestamp < this.cacheDuration) {
-      return cacheEntry.data;
+  async getCachedData(key: string): Promise<T | null> {
+    const cachedData = await this.redis.get(key);
+    if (cachedData) {
+      return JSON.parse(cachedData);
     }
     return null;
   }
 
-  getLastCachedDataWithoutValidation(key: string): T | undefined {
-    const cacheEntry = this.cacheMap.get(key);
-    return cacheEntry?.data;
+  async setCache(key: string, data: T): Promise<void> {
+    await this.redis.set(
+      key,
+      JSON.stringify(data),
+      "EX",
+      this.cacheDuration / 1000
+    );
   }
 
-  setCache(key: string, data: T): void {
-    this.cacheMap.set(key, { data, timestamp: Date.now() });
+  async clearCache(key: string): Promise<void> {
+    await this.redis.del(key);
   }
 
-  clearCache(key: string): void {
-    this.cacheMap.delete(key);
-  }
-
-  clearAllCaches(): void {
-    this.cacheMap.clear();
+  async clearAllCaches(): Promise<void> {
+    await this.redis.flushall();
   }
 }
