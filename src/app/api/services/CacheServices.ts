@@ -8,7 +8,6 @@ export class CacheService<T> {
     this.redis = new Redis(process.env.REDIS_URL as string);
     this.cacheDuration = cacheDuration;
   }
-
   async getCachedData(key: string): Promise<T | null> {
     const cachedData = await this.redis.get(key);
     if (cachedData) {
@@ -23,7 +22,7 @@ export class CacheService<T> {
       JSON.stringify(data),
       "EX",
       this.cacheDuration / 1000
-    ); // Set with expiration
+    );
   }
 
   async clearCache(key: string): Promise<void> {
