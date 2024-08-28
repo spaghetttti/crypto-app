@@ -2,7 +2,7 @@ export class CacheService<T> {
   private cacheMap: Map<string, { data: T; timestamp: number }>;
   private cacheDuration: number;
 
-  constructor(cacheDuration: number) {
+  constructor(cacheDuration: number = 3000) {
     this.cacheMap = new Map();
     this.cacheDuration = cacheDuration;
   }

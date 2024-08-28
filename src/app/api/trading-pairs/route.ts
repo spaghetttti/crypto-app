@@ -1,51 +1,22 @@
 import { NextResponse } from 'next/server';
-import axios from 'axios';
-
-interface TradingPair {
-  name: string;
-  url_symbol: string;
-  description: string;
-}
+import { TradingPairsService } from '../services/TradingPairsServices';
 
 export async function GET(request: Request) {
+  const service = new TradingPairsService();
   const { searchParams } = new URL(request.url);
-  const pageParam = searchParams.get('page');
-  const limitParam = searchParams.get('limit');
-
-  // Parse and validate the 'page' parameter
-  const page = parseInt(pageParam || '1', 10);
-  if (isNaN(page) || page <= 0) {
-    return NextResponse.json({ error: 'Invalid page parameter, must be a positive integer' }, { status: 400 });
-  }
-
-  // Parse and validate the 'limit' parameter
-  const limit = parseInt(limitParam || '10', 10);
-  if (isNaN(limit) || limit <= 0) {
-    return NextResponse.json({ error: 'Invalid limit parameter, must be a positive integer' }, { status: 400 });
-  }
 
   try {
-    const response = await axios.get<TradingPair[]>('https://www.bitstamp.net/api/v2/trading-pairs-info/');
-    
-    const tradingPairs = response.data.map(pair => ({
-      name: pair.name,
-      url_symbol: pair.url_symbol,
-      description: pair.description,
-    }));
+    const page = service.validatePageParam(searchParams.get('page'));
+    const limit = service.validateLimitParam(searchParams.get('limit'));
 
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedPairs = tradingPairs.slice(startIndex, endIndex);
+    const tradingPairs = await service.fetchTradingPairs();
+    const paginatedResult = service.paginate(tradingPairs, page, limit);
 
-    const totalPages = Math.ceil(tradingPairs.length / limit);
-
-    return NextResponse.json({
-      page,
-      totalPages,
-      totalItems: tradingPairs.length,
-      items: paginatedPairs,
-    });
+    return NextResponse.json(paginatedResult);
   } catch (error) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     return NextResponse.json({ error: 'Failed to fetch trading pairs data' }, { status: 500 });
   }
 }
