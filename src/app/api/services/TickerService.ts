@@ -18,6 +18,8 @@ class TickerService {
 
   async getTickerData(): Promise<TickerData> {
     const cachedData = this.getLastCachedData();
+    if (cachedData) return cachedData;
+    
     const now = Date.now();
     const [bitfinex, coinbase, bitstamp] = await Promise.all([
       axios.get(API_ENDPOINTS.bitfinex),
