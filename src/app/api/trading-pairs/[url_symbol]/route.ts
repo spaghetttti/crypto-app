@@ -29,7 +29,6 @@ export async function GET(request: Request) {
 
     return NextResponse.json(response.data);
   } catch (error) {
-    console.error(`Error fetching data for trading pair ${url_symbol}:`, error);
     return NextResponse.json({ error: 'Failed to fetch trading pair data' }, { status: 500 });
   }
 }

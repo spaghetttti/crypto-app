@@ -9,7 +9,7 @@ export interface SelectedTradingPair {
 }
 
 export default function DetailedSidePanel() {
-  const [selectedTradingPair, setSelectedTradingPair] = useState<SelectedTradingPair>({url_symbol: 'usdbtc', description: 'loh'});
+  const [selectedTradingPair, setSelectedTradingPair] = useState<SelectedTradingPair>({url_symbol: 'btcusd', description: 'loh'});
 
   const handleSelectedTradingPairChange = (newTradingPair: SelectedTradingPair) => {
     setSelectedTradingPair(newTradingPair);

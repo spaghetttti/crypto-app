@@ -1,87 +1,89 @@
 "use client";
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import GJNumberLabel from "./GJNumberLabel";
-import { SelectedTradingPair } from './DetailedSidePanel';
+import { SelectedTradingPair } from "./DetailedSidePanel";
 
-
-export interface TradingPair extends SelectedTradingPair  {
-  name: string;
-}
 interface ButtonsGroupProps {
   handleTradingPairChange: (value: SelectedTradingPair) => void;
+}
+
+export interface TradingPair extends SelectedTradingPair {
+  name: string;
 }
 
 interface FetchTradingPairsResponse {
   items: TradingPair[];
   totalPages: number;
+  totalItems: number;
 }
 
-export async function fetchTradingPairs(page: number, limit: number): Promise<FetchTradingPairsResponse> {
-  const response = await fetch(`/api/trading-pairs?page=${page}&limit=${limit}`);
+export async function fetchTradingPairs(
+  page: number,
+  limit: number
+): Promise<FetchTradingPairsResponse> {
+  const response = await fetch(
+    `/api/trading-pairs?page=${page}&limit=${limit}`
+  );
   if (!response.ok) {
-    throw new Error('Failed to fetch trading pairs');
+    throw new Error("Failed to fetch trading pairs");
   }
   return response.json();
 }
-
-export default function ButtonsGroup({ handleTradingPairChange }: ButtonsGroupProps) {
+export default function ButtonsGroup({
+  handleTradingPairChange,
+}: ButtonsGroupProps) {
   const [page, setPage] = useState<number>(1);
-  const limit = 9;
+  const [items, setItems] = useState<TradingPair[]>([]);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const limit = 27;
 
   const { data, error, isLoading, isFetching } = useQuery({
-    queryKey: ['tradingPairs', page],
+    queryKey: ["tradingPairs", page],
     queryFn: () => fetchTradingPairs(page, limit),
+    staleTime: 60000,
     // keepPreviousData: true,
-    staleTime: 60000, // Keep data fresh for a minute
-  }
-  );
+  });
 
-  const handlePreviousPage = () => {
-    if (page > 1) {
-      setPage(page - 1);
+  useEffect(() => {
+    if (data) {
+      setItems((prevItems) => [...prevItems, ...data.items]);
+      setHasMore(data.items.length > 0);
     }
-  };
+  }, [data]);
 
-  const handleNextPage = () => {
-    if (page < (data?.totalPages || 1)) {
-      setPage(page + 1);
+  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+    if (
+      scrollHeight - scrollTop <= clientHeight * 1.5 &&
+      hasMore &&
+      !isLoading &&
+      !isFetching
+    ) {
+      setPage((prevPage) => prevPage + 1);
     }
   };
 
   return (
-    <div>
+    <div onScroll={handleScroll} style={{ height: "400px", overflowY: "auto" }}>
       <div className="grid grid-cols-3 gap-2 p-2">
-        {(isLoading || isFetching) && <p>Loading...</p>}
-        {error && <p className="text-red-500">{(error as Error).message}</p>}
-        {!isLoading && !error && data?.items.map((pair: TradingPair) => (
+        {items.map((pair: TradingPair) => (
           <button
             key={pair.url_symbol}
-            className="bg-blue-400 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded"
-            onClick={() => handleTradingPairChange({url_symbol: pair.url_symbol, description: pair.description})}
+            className="bg-blue-400 hover:bg-blue-500 text-white py-2 px-4 rounded"
+            onClick={() =>
+              handleTradingPairChange({
+                url_symbol: pair.url_symbol,
+                description: pair.name,
+              })
+            }
           >
             <GJNumberLabel description={pair.name} number={pair.description} />
           </button>
         ))}
       </div>
-
-      <div className="flex justify-between m-4">
-        <button
-          onClick={handlePreviousPage}
-          disabled={page === 1 || isLoading || isFetching}
-          className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <span>Page {page} of {data?.totalPages || 1}</span>
-        <button
-          onClick={handleNextPage}
-          disabled={page === data?.totalPages || isLoading || isFetching}
-          className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
+      {(isLoading || isFetching) && <p>Loading...</p>}
+      {error && <p className="text-red-500">{(error as Error).message}</p>}
     </div>
   );
 }
