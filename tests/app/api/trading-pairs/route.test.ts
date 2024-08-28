@@ -38,7 +38,7 @@ describe('GET /api/trading-pairs', () => {
       page: 2,
       totalPages: 10,
       totalItems: 100,
-      items: mockData.slice(10, 20), // items 11-20
+      items: mockData.slice(10, 20),
     };
 
     expect(NextResponse.json).toHaveBeenCalledWith(expectedResponse);

@@ -21,8 +21,6 @@ describe("GET /api/ticker", () => {
   let cache: TickerData;
 
   beforeEach(() => {
-    console.log(cache);
-    
     // cache = { data: null, timestamp: 0 }; 
     jest.spyOn(global.Date, 'now').mockImplementation(() => 1000000); // Mock the timestamp
   });
@@ -57,7 +55,6 @@ describe("GET /api/ticker", () => {
       .reply(200, { data: { rates: { USD: "26000" } } });
     mock.onGet(API_ENDPOINTS.bitfinex).reply(200, [["tBTCUSD", 24000]]);
 
-    // Set cache to be expired
     cache = {
       averagePrice: "25000.00",
       details: {
