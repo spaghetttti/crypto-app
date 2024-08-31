@@ -3,8 +3,8 @@ import TickerService from "../services/TickerService";
 import { CacheService } from "../services/CacheServices";
 import { TickerData } from "@/types/TickerData";
 
-const cacheService = new CacheService<TickerData>(10000); // caching mechanism removed from TickerService because of deployment issues
-const tickerService = new TickerService();
+const cacheService = new CacheService<TickerData>(30000); // caching mechanism removed from TickerService because of deployment issues
+const tickerService = new TickerService(cacheService, 'ticker-cache');
 
 export async function GET() {
   try {
