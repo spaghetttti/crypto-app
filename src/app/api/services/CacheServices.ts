@@ -4,11 +4,12 @@ export class CacheService<T> {
   private redis: Redis;
   private cacheDuration: number;
 
-  constructor(cacheDuration: number = 3000) {
-    this.redis = new Redis(process.env.REDIS_URL as string);
+  constructor(cacheDuration: number = 30000) {
+    this.redis = new Redis(process.env.VERCEL_ENV as string);
     this.cacheDuration = cacheDuration;
   }
   async getCachedData(key: string): Promise<T | null> {
+    console.log(this.redis);
     const cachedData = await this.redis.get(key);
     if (cachedData) {
       return JSON.parse(cachedData);
