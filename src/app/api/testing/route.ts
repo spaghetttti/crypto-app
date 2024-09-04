@@ -1,14 +1,21 @@
 import { API_ENDPOINTS } from "@/app/constants/urls";
+import axios from "axios";
 import { NextResponse } from "next/server";
 
 async function fetchJson(url: string) {
-  const response = await fetch(url, {
-    cache: 'no-store', // Ensures no caching on the server side
+  const response = await axios.get(url, {
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    },
   });
-  if (!response.ok) {
+
+  if (response.status !== 200) {
     throw new Error(`Failed to fetch data from ${url}`);
   }
-  return response.json();
+
+  return response.data;
 }
 
 export async function GET() {
@@ -25,7 +32,7 @@ export async function GET() {
 
     const averagePrice = (bitstampPrice + coinbasePrice + bitfinexPrice) / 3;
 
-    // Set headers to prevent caching
+    // Set headers to prevent caching in the response
     const headers = new Headers({
       'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
       'Pragma': 'no-cache',

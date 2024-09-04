@@ -6,6 +6,11 @@ import { CacheService } from "./CacheServices";
 class TickerService {
   private cacheService: CacheService<TickerData>;
   private cacheKey: string;
+  private headers = {
+    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+    Pragma: "no-cache",
+    Expires: "0",
+  };
 
   constructor(cacheService: CacheService<TickerData>, cacheKey: string) {
     this.cacheService = cacheService;
@@ -23,9 +28,15 @@ class TickerService {
     const now = Date.now();
 
     const [bitfinex, coinbase, bitstamp] = await Promise.all([
-      axios.get(API_ENDPOINTS.bitfinex),
-      axios.get(API_ENDPOINTS.coinbase),
-      axios.get(API_ENDPOINTS.bitstamp),
+      axios.get(API_ENDPOINTS.bitfinex, {
+        headers: this.headers,
+      }),
+      axios.get(API_ENDPOINTS.coinbase, {
+        headers: this.headers,
+      }),
+      axios.get(API_ENDPOINTS.bitstamp, {
+        headers: this.headers,
+      }),
     ]);
 
     const bitstampPrice = parseFloat(bitstamp.data.last);
@@ -33,7 +44,8 @@ class TickerService {
     const bitfinexPrice = parseFloat(bitfinex.data[0][1]);
 
     const averagePrice = (
-      (bitstampPrice + coinbaseRate + bitfinexPrice) / 3
+      (bitstampPrice + coinbaseRate + bitfinexPrice) /
+      3
     ).toFixed(2);
 
     const responseData: TickerData = {
@@ -47,6 +59,7 @@ class TickerService {
     };
 
     await this.cacheService.setCache(this.cacheKey, responseData);
+
     return responseData;
   }
 }
