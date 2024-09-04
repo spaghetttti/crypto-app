@@ -2,7 +2,9 @@ import { API_ENDPOINTS } from "@/app/constants/urls";
 import { NextResponse } from "next/server";
 
 async function fetchJson(url: string) {
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    cache: 'no-store', // Ensures no caching on the server side
+  });
   if (!response.ok) {
     throw new Error(`Failed to fetch data from ${url}`);
   }
@@ -11,24 +13,28 @@ async function fetchJson(url: string) {
 
 export async function GET() {
   try {
-    // Fetch data from all three endpoints
     const [bitstampData, coinbaseData, bitfinexData] = await Promise.all([
       fetchJson(API_ENDPOINTS.bitstamp),
       fetchJson(API_ENDPOINTS.coinbase),
       fetchJson(API_ENDPOINTS.bitfinex),
     ]);
 
-    // Extract the BTC/USD values from each API response
     const bitstampPrice = parseFloat(bitstampData.last);
     const coinbasePrice = parseFloat(coinbaseData.data.rates.USD);
     const bitfinexPrice = parseFloat(bitfinexData[0][1]);
 
-    // Calculate the average price
     const averagePrice = (bitstampPrice + coinbasePrice + bitfinexPrice) / 3;
 
-    // Return the average price in the response
-    return NextResponse.json({ averagePrice });
+    // Set headers to prevent caching
+    const headers = new Headers({
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      'Surrogate-Control': 'no-store',
+    });
+
+    return NextResponse.json({ averagePrice }, { headers });
   } catch (error) {
-    return NextResponse.json({ error }, { status: 500 });
+    return NextResponse.json({ error: error }, { status: 500 });
   }
 }
