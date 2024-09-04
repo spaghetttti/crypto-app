@@ -1,4 +1,4 @@
-import axios from "axios";
+// import axios from "axios";
 import { API_ENDPOINTS } from "@/app/constants/urls";
 import { TickerData } from "@/types/TickerData";
 import { CacheService } from "./CacheServices";
@@ -6,11 +6,11 @@ import { CacheService } from "./CacheServices";
 class TickerService {
   private cacheService: CacheService<TickerData>;
   private cacheKey: string;
-  private headers = {
-    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-    Pragma: "no-cache",
-    Expires: "0",
-  };
+  // private headers = {
+  //   "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  //   Pragma: "no-cache",
+  //   Expires: "0",
+  // };
 
   constructor(cacheService: CacheService<TickerData>, cacheKey: string) {
     this.cacheService = cacheService;
@@ -27,24 +27,18 @@ class TickerService {
 
     const now = Date.now();
 
-    const [bitfinex, coinbase, bitstamp] = await Promise.all([
-      axios.get(API_ENDPOINTS.bitfinex, {
-        headers: this.headers,
-      }),
-      axios.get(API_ENDPOINTS.coinbase, {
-        headers: this.headers,
-      }),
-      axios.get(API_ENDPOINTS.bitstamp, {
-        headers: this.headers,
-      }),
+    const [bitstampData, coinbaseData, bitfinexData] = await Promise.all([
+      this.fetchJson(API_ENDPOINTS.bitstamp),
+      this.fetchJson(API_ENDPOINTS.coinbase),
+      this.fetchJson(API_ENDPOINTS.bitfinex),
     ]);
 
-    const bitstampPrice = parseFloat(bitstamp.data.last);
-    const coinbaseRate = parseFloat(coinbase.data.data.rates.USD);
-    const bitfinexPrice = parseFloat(bitfinex.data[0][1]);
+    const bitstampPrice = parseFloat(bitstampData.last);
+    const coinbasePrice = parseFloat(coinbaseData.data.rates.USD);
+    const bitfinexPrice = parseFloat(bitfinexData[0][1]);
 
     const averagePrice = (
-      (bitstampPrice + coinbaseRate + bitfinexPrice) /
+      (bitstampPrice + coinbasePrice + bitfinexPrice) /
       3
     ).toFixed(2);
 
@@ -52,7 +46,7 @@ class TickerService {
       averagePrice,
       details: {
         bitstamp: bitstampPrice,
-        coinbase: coinbaseRate,
+        coinbase: coinbasePrice,
         bitfinex: bitfinexPrice,
       },
       timestamp: now,
@@ -61,6 +55,16 @@ class TickerService {
     await this.cacheService.setCache(this.cacheKey, responseData);
 
     return responseData;
+  }
+
+  async fetchJson(url: string) {
+    const response = await fetch(url, {
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch data from ${url}`);
+    }
+    return response.json();
   }
 }
 
