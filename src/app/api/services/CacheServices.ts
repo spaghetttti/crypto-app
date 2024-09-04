@@ -1,36 +1,34 @@
-import Redis from "ioredis";
+type CacheItem<T> = {
+  value: T;
+  expiry: number;
+};
 
 export class CacheService<T> {
-  private redis: Redis;
-  private cacheDuration: number;
+  private cache: Map<string, CacheItem<T>>;
+  private cacheDuration: number; // Cache duration in milliseconds
 
-  constructor(cacheDuration: number = 30000) {
-    this.redis = new Redis(process.env.VERCEL_ENV as string);
+  constructor(cacheDuration: number) {
+    this.cache = new Map();
     this.cacheDuration = cacheDuration;
   }
+
   async getCachedData(key: string): Promise<T | null> {
-    console.log(this.redis);
-    const cachedData = await this.redis.get(key);
-    if (cachedData) {
-      return JSON.parse(cachedData);
+    const item = this.cache.get(key);
+
+    if (item && Date.now() < item.expiry) {
+      return item.value;
     }
+
+    this.cache.delete(key);
     return null;
   }
 
-  async setCache(key: string, data: T): Promise<void> {
-    await this.redis.set(
-      key,
-      JSON.stringify(data),
-      "EX",
-      this.cacheDuration / 1000
-    );
+  async setCache(key: string, value: T): Promise<void> {
+    const expiry = Date.now() + this.cacheDuration;
+    this.cache.set(key, { value, expiry });
   }
 
-  async clearCache(key: string): Promise<void> {
-    await this.redis.del(key);
-  }
-
-  async clearAllCaches(): Promise<void> {
-    await this.redis.flushall();
+  clear(): void {
+    this.cache.clear();
   }
 }

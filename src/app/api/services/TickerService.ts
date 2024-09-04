@@ -1,4 +1,3 @@
-
 import axios from "axios";
 import { API_ENDPOINTS } from "@/app/constants/urls";
 import { TickerData } from "@/types/TickerData";
@@ -14,8 +13,7 @@ class TickerService {
   }
 
   async getLastCachedData(): Promise<TickerData | null> {
-    const cachedData = await this.cacheService.getCachedData(this.cacheKey);
-    return cachedData;
+    return await this.cacheService.getCachedData(this.cacheKey);
   }
 
   async getTickerData(): Promise<TickerData> {
@@ -35,8 +33,7 @@ class TickerService {
     const bitfinexPrice = parseFloat(bitfinex.data[0][1]);
 
     const averagePrice = (
-      (bitstampPrice + coinbaseRate + bitfinexPrice) /
-      3
+      (bitstampPrice + coinbaseRate + bitfinexPrice) / 3
     ).toFixed(2);
 
     const responseData: TickerData = {
@@ -55,4 +52,3 @@ class TickerService {
 }
 
 export default TickerService;
-``
